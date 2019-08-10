@@ -20,6 +20,7 @@ from beancount.core import data
 from beancount.ingest import importer
 from beancount.ingest.importers import regexp
 
+import pdb
 
 # The set of interpretable columns.
 class Col(enum.Enum):
@@ -200,7 +201,9 @@ class Importer(regexp.RegexpImporterMixin, importer.ImporterProtocol):
 
         def get(row, ftype):
             try:
-                return row[iconfig[ftype]] if ftype in iconfig else None
+                out = row[iconfig[ftype]] if ftype in iconfig else None
+                # pdb.set_trace()
+                return out
             except IndexError:  # FIXME: this should not happen
                 return None
 
@@ -222,6 +225,7 @@ class Importer(regexp.RegexpImporterMixin, importer.ImporterProtocol):
 
             # Extract the data we need from the row, based on the configuration.
             date = get(row, Col.DATE)
+            # pdb.set_trace()
             txn_date = get(row, Col.TXN_DATE)
             txn_time = get(row, Col.TXN_TIME)
 
