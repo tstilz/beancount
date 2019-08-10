@@ -116,6 +116,7 @@ def compress_lifetimes_days(lifetimes_map, num_days):
 
 
 ONE_WEEK = datetime.timedelta(days=7)
+ONE_DAY = datetime.timedelta(days=1)
 
 
 def required_weekly_prices(lifetimes_map, date_last):
@@ -151,3 +152,35 @@ def required_weekly_prices(lifetimes_map, date_last):
                 results.append((date, currency_pair[0], currency_pair[1]))
                 date += ONE_WEEK
     return sorted(results)
+
+
+def required_daily_prices(lifetimes_map, date_last):
+    """Enumerate all the commodities and fridays where the price is required.
+
+    Given a map of lifetimes for a set of commodities, enumerate all the Fridays
+    for each commodity where it is active. This can be used to connect to a
+    historical price fetcher routine to fill in missing price entries from an
+    existing ledger.
+
+    Args:
+      lifetimes_map: A dict of currency to active intervals as returned by
+        get_commodity_lifetimes().
+      date_last: A datetime.date instance, the last date which we're interested in.
+    Returns:
+      Tuples of (date, currency, cost-currency).
+    """
+    results = []
+    for currency_pair, intervals in lifetimes_map.items():
+        if currency_pair[1] is None:
+            continue
+        for date_begin, date_end in intervals:
+            date = date_begin + datetime.timedelta(days=1)
+            if date_end is None:
+                date_end = date_last
+            while date < date_end:
+                # Store weekday dates only.
+                if date.weekday() in [0,1,2,3,4]:
+                  results.append((date, currency_pair[0], currency_pair[1]))
+                date += ONE_DAY
+    return sorted(results)
+

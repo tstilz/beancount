@@ -13,6 +13,8 @@ from beancount.core import amount
 from beancount.ops import summarize
 
 
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+
 # A dated price source description.
 #
 # Attributes:
@@ -126,6 +128,7 @@ def parse_single_source(source):
         raise ValueError('Invalid source name: "{}"'.format(source))
     short_module_name, invert, symbol = match.groups()
     module = import_source(short_module_name)
+    print('importing %s' % symbol)
     return PriceSource(module, symbol, bool(invert))
 
 
@@ -350,6 +353,8 @@ def get_price_jobs_at_date(entries, date=None, inactive=False, undeclared_source
     # tickers for each (base, quote) pair. This is the only place tickers
     # appear.
     declared_triples = find_currencies_declared(entries, date)
+    # print('declared_triples = %s' % declared_triples)
+    # print('date = %s' % date)
     currency_map = {(base, quote): psources
                     for base, quote, psources in declared_triples}
 
@@ -382,6 +387,8 @@ def get_price_jobs_at_date(entries, date=None, inactive=False, undeclared_source
 
     # Build up the list of jobs to fetch prices for.
     jobs = []
+    # print('currencies = %s' % currencies)
+
     for base_quote in currencies:
         psources = currency_map.get(base_quote, None)
         base, quote = base_quote
@@ -391,4 +398,5 @@ def get_price_jobs_at_date(entries, date=None, inactive=False, undeclared_source
             psources = [PriceSource(default_source, base, False)]
 
         jobs.append(DatedPrice(base, quote, date, psources))
+        # print('append job')
     return sorted(jobs)
