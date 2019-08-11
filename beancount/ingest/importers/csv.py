@@ -20,7 +20,7 @@ from beancount.core import data
 from beancount.ingest import importer
 from beancount.ingest.importers import regexp
 
-import pdb
+from pdb import set_trace as bp
 
 # The set of interpretable columns.
 class Col(enum.Enum):

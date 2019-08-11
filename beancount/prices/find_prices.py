@@ -13,7 +13,7 @@ from beancount.core import amount
 from beancount.ops import summarize
 
 
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+# logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 # A dated price source description.
 #

@@ -30,6 +30,15 @@ def get_balance_tolerance(balance_entry, options_map):
     Returns:
       A Decimal, the amount of tolerance implied by the directive.
     """
+
+
+    try:
+        # look if there is a second currency with default tolerance
+        tolerance = options_map['inferred_tolerance_default'][balance_entry.amount.currency]
+        return tolerance
+    except:
+        pass
+
     if balance_entry.tolerance is not None:
         # Use the balance-specific tolerance override if it is provided.
         tolerance = balance_entry.tolerance
