@@ -281,7 +281,8 @@ class Importer(regexp.RegexpImporterMixin, importer.ImporterProtocol):
                 txn = self.categorizer(txn)
 
             # Add the transaction to the output list
-            entries.append(txn)
+            if txn:
+                entries.append(txn)
 
         # Figure out if the file is in ascending or descending order.
         first_date = parse_date_liberally(get(first_row, Col.DATE),
