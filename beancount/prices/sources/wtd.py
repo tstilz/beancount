@@ -26,29 +26,17 @@ from beancount.core.number import D
 from beancount.prices import source
 
 
-class YahooError(ValueError):
+class WTDError(ValueError):
     "An error from the Yahoo API."
 
-
-from pdb import set_trace as bp
 
 def parse_response(response: requests.models.Response) -> Dict:
     """Process as response from Yahoo.
 
     Raises:
-      YahooError: If there is an error in the response.
+      WTDError: If there is an error in the response.
     """
-    json = response.json()
-    content = next(iter(json.values()))
-    if response.status_code != requests.codes.ok:
-        raise YahooError("Status {}: {}".format(response.status_code, content['error']))
-    if len(json) != 1:
-        raise YahooError("Invalid format in response from Yahoo; many keys: {}".format(
-            ','.join(json.keys())))
-    if content['error'] is not None:
-        raise YahooError("Error fetching Yahoo data: {}".format(content['error']))
-    return content['result'][0]
-
+    return response.json()['data'][0] 
 
 # Note: Feel free to suggest more here via a PR.
 _MARKETS = {
@@ -66,48 +54,61 @@ def parse_currency(result: Dict[str, Any]) -> str:
 
 _DEFAULT_PARAMS = {
     'lang': 'en-US',
-    'corsDomain': 'finance.yahoo.com',
+    # 'corsDomain': 'finance.yahoo.com',
     '.tsrc': 'finance',
 }
 
+from pdb import set_trace as bp
+
+DATA_A_TOKEN = "8EEsff5jgIS2fS3s9uYMj2kJFEuS87igcAArmReAg1JpYtqXs4zWnWw4ekBZ"
+DATA_A_URL_MF = "https://api.worldtradingdata.com/api/v1/mutualfund"
+DATA_A_URL_HISTORY = "https://api.worldtradingdata.com/api/v1/history"
+
+# DATA_B_TOKEN = "8EEsff5jgIS2fS3s9uYMj2kJFEuS87igcAArmReAg1JpYtqXs4zWnWw4ekBZ"
+DATA_B_URL = 'https://api.exchangeratesapi.io/latest?base=USD'
+# DATA_B_URL_HISTORY = "https://api.worldtradingdata.com/api/v1/history"
+
+
 
 class Source(source.Source):
-    "Yahoo Finance CSV API price extractor."
+    "World Trading Data API price extractor."
 
     def get_latest_price(self, ticker):
         """See contract in beancount.prices.source.Source."""
 
-        url = "https://query1.finance.yahoo.com/v7/finance/quote"
-        fields = ['symbol', 'regularMarketPrice', 'regularMarketTime']
+        url = "https://api.worldtradingdata.com/api/v1/mutualfund"
+        fields = ['symbol', 'price', 'regularMarketTime']
         payload = {
-            'symbols': ticker,
-            'fields': ','.join(fields),
-            'exchange': 'NYSE',
+            'symbol': ticker,
+            'api_token': DATA_A_TOKEN,
         }
         payload.update(_DEFAULT_PARAMS)
         response = requests.get(url, params=payload)
         result = parse_response(response)
+        # print(result)
         try:
-            price = D(result['regularMarketPrice'])
-
-            timezone = datetime.timezone(
-                datetime.timedelta(hours=result['gmtOffSetMilliseconds'] / 3600000),
-                result['exchangeTimezoneName'])
-            trade_time = datetime.datetime.fromtimestamp(result['regularMarketTime'],
-                                                         tz=timezone)
+            price = D(result['price'])
+            trade_time = datetime.datetime.now(tz=datetime.timezone.utc)
         except KeyError:
-            raise YahooError("Invalid response from Yahoo: {}".format(repr(result)))
+            raise WTDError("Invalid response from Yahoo: {}".format(repr(result)))
 
-        currency = parse_currency(result)
-
-        # bp()
+        currency = 'USD'
         return source.SourcePrice(price, trade_time, currency)
 
     def get_historical_price(self, ticker, time):
         """See contract in beancount.prices.source.Source."""
         if requests is None:
-            raise YahooError("You must install the 'requests' library.")
-        url = "https://query1.finance.yahoo.com/v8/finance/chart/{}".format(ticker)
+            raise WTDError("You must install the 'requests' library.")
+        url = "https://api.worldtradingdata.com/api/v1/history"
+        payload = {
+            'symbol': ticker,
+            'api_token': DATA_A_TOKEN,
+        }
+        payload.update(_DEFAULT_PARAMS)
+        response = requests.get(url, params=payload)
+        bp()
+        result = parse_response(response)
+        
         dt_start = time - datetime.timedelta(days=5)
         dt_end = time
         payload = {
@@ -135,7 +136,7 @@ class Source(source.Source):
                 break
             latest = data_dt, price
         if latest is None:
-            raise YahooError("Could not find price before {} in {}".format(time, series))
+            raise WTDError("Could not find price before {} in {}".format(time, series))
 
-        currency = result['meta']['currency']
+        currency = 'USD'
         return source.SourcePrice(price, data_dt, currency)
