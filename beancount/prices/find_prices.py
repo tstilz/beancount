@@ -128,7 +128,7 @@ def parse_single_source(source):
         raise ValueError('Invalid source name: "{}"'.format(source))
     short_module_name, invert, symbol = match.groups()
     module = import_source(short_module_name)
-    print('importing %s' % symbol)
+    # print('importing %s' % symbol)
     return PriceSource(module, symbol, bool(invert))
 
 
