@@ -12,6 +12,7 @@ from beancount.core import data
 from beancount.core import amount
 from beancount.ops import summarize
 
+from pdb import set_trace as bp
 
 # logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 

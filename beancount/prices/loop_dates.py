@@ -6,16 +6,24 @@ from datetime import timedelta, date
 import sys
 import fileinput
 
+
+TICKERS = {'USD:yahoo/IGRFX',
+		   'USD:yahoo/VTSAX',
+		   'USD:yahoo/RNGGX',
+		   'USD:yahoo/RGAGX',
+		   'USD:yahoo/NOKUSD=X',
+		   '',
+		   ''}
 out_file = '/home/toms/d/fava/assets/prices.beancount'
-data_src = 'USD:yahoo/NOKUSD=X'
+data_src = 'USD:yahoo/VTSAX'
 bp_exe = '/home/toms/c/st/fava/src/beancount/bin/bean-price'
 
 def daterange(start_date, end_date):
     for n in range(int ((end_date - start_date).days)):
         yield start_date + timedelta(n)
 
-start_date = date(2015, 6, 23)
-end_date = date(2017, 6, 23)
+start_date = date(2018, 1, 1)
+end_date = date(2018, 1, 10)
 # end_date = date.today()
 for single_date in daterange(start_date, end_date):
     # print (single_date.strftime("%Y-%m-%d"))
